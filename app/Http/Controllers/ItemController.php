@@ -137,12 +137,20 @@ class ItemController extends Controller
      * @param  \App\Models\Item  $item
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(Item $item)
+    public function destroy(int $id)
     {
+        $item = Item::find($id);
+        if($item === null) {
+            return response()->json([
+                'status' => 404,
+                'message' => "item does not exist"
+            ],404);
+        }
+
         $item->delete();
         return response()->json([
-            'status' => 500,
-            'message' => "something went wrong"
-        ],500);
+            'status' => 200,
+            'message' => "deleted item"
+        ],200);
     }
 }

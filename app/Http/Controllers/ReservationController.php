@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Helpers\ResponseHelper;
+use App\Http\Helpers\Validator;
 use App\Models\Reservation;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ReservationController extends Controller
@@ -10,76 +13,60 @@ class ReservationController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        $reservation = Reservation::all();
+        return response()->json([
+            'status'=>200,
+            'data'=>$reservation]);
     }
 
     /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
     public function store(Request $request)
     {
-        //
+        Validator::validate(new Reservation(),$request);
+
+        $reservation = new Reservation($request->all());
+        $reservation->save();
+        if($reservation) {
+            return ResponseHelper::renderResponse(200,"Reservation created successfully",$reservation->toArray());
+        }
+        return ResponseHelper::renderResponse(500, "Something went wrong");
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Reservation  $reservation
-     * @return \Illuminate\Http\Response
+     * @param $id
+     * @return JsonResponse
      */
-    public function show(Reservation $reservation)
+    public function getItemById($id): JsonResponse
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Reservation  $reservation
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Reservation $reservation)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Reservation  $reservation
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Reservation $reservation)
-    {
-        //
+        $reservation = Reservation::find($id);
+        if ($reservation === null) {
+            return ResponseHelper::renderResponse(404, "Reservation does not exist");
+        }
+        return ResponseHelper::renderResponse(200, "successfully fetched", $reservation);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Reservation  $reservation
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function destroy(Reservation $reservation)
+    public function destroy($id)
     {
-        //
+        $reservation = Reservation::find($id);
+        if ($reservation === null) {
+            return ResponseHelper::renderResponse(400, "Reservation not found");
+        }
+
+        $reservation->delete();
+        return ResponseHelper::renderResponse(200, "Successfully deleted Reservation");
     }
 }

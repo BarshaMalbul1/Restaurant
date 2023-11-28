@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Helpers\ResponseHelper;
+use App\Http\Helpers\Validator;
 use App\Models\Order;
 use Illuminate\Http\Request;
 
@@ -10,76 +12,60 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        $order = Order::all();
+        return response()->json([
+            'status'=>200,
+            'data'=>$order]);
     }
 
     /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
-        //
+        Validator::validate(new Order(),$request);
+
+        $order = new Order($request->all());
+        $order->save();
+        if($order) {
+            return ResponseHelper::renderResponse(200,"Order created successfully",$order->toArray());
+        }
+        return ResponseHelper::renderResponse(500, "Something went wrong");
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Order $order)
+    public function getItemById($id): \Illuminate\Http\JsonResponse
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Order $order)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Order $order)
-    {
-        //
+        $order = Order::find($id);
+        if ($order === null) {
+            return ResponseHelper::renderResponse(404, "Order does not exist");
+        }
+        return ResponseHelper::renderResponse(200, "successfully fetched", $order);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(Order $order)
+    public function destroy($id)
     {
-        //
+        $order = Order::find($id);
+        if ($order === null) {
+            return ResponseHelper::renderResponse(400, "Order not found");
+        }
+
+        $order->delete();
+        return ResponseHelper::renderResponse(200, "Successfully deleted Order");
     }
 }
