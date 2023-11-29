@@ -6,7 +6,7 @@ use App\Models\Item;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Helpers\Validator;
 
 class ItemController extends Controller
 {
@@ -51,6 +51,8 @@ class ItemController extends Controller
      */
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
+
+        Validator::validate(new Item(),$request);
 
         $items= DB::table('items')->insert([
            'name' =>$request['name'],
