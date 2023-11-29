@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Helpers\ResponseHelper;
 use App\Models\Item;
+use App\Models\ItemCategory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,11 +28,10 @@ class ItemController extends Controller
     public function getItemById($id)
     {
         $item=Item::find($id);
-        if($item) {
-            return response()->json($item,200);
-        } else{
-            return response()->json(['message'=>'item not found'],404);
+        if($item === null) {
+            return ResponseHelper::renderResponse(404, "Item does not exist");
         }
+        return ResponseHelper::renderResponse(200, "successfully fetched", $item);
     }
 
     /**
@@ -51,29 +52,23 @@ class ItemController extends Controller
      */
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $image = $request->file('image');
+        $imageName = time() . '.' . $image->extension();
+        $image->storeAs('public/images', $imageName);
 
         Validator::validate(new Item(),$request);
 
-        $items= DB::table('items')->insert([
-           'name' =>$request['name'],
-           'price' =>$request['price'],
-           'description' =>$request['description'],
-           'item_category_id' =>$request['categoryId'],
-           'image' =>$request['image'],
-           'created_at' =>Carbon::now(),
-           'updated_at' =>Carbon::now(),
-       ]);
-       if($items) {
-            return response()->json([
-                'status' => 200,
-                'message' => "items created successfully"
-            ],200);
-       } else {
-           return response()->json([
-               'status' => 500,
-               'message' => "something went wrong"
-           ],500);
-       }
+        $item = new Item($request->all());
+        $item->image = $imageName;
+        $item->save();
+        if($item) {
+            return ResponseHelper::renderResponse(200,"Item created successfully",$item->toArray());
+        }
+        return ResponseHelper::renderResponse(500, "Something went wrong");
 
     }
 
@@ -82,11 +77,15 @@ class ItemController extends Controller
      * Display the specified resource.
      *
      * @param  \App\Models\Item  $item
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Item $item)
+    public function show(Item $item): \Illuminate\Http\JsonResponse
     {
-        return Item::find($item['id']);
+        $customer = Item::find($item);
+        if ($customer === null) {
+            return ResponseHelper::renderResponse(404, "Item does not exist");
+        }
+        return ResponseHelper::renderResponse(200, "successfully fetched", $item);
     }
 
     /**
@@ -154,5 +153,15 @@ class ItemController extends Controller
             'status' => 200,
             'message' => "deleted item"
         ],200);
+    }
+
+    public function getItemsByCategoryId($id): \Illuminate\Http\JsonResponse
+    {
+        $items = Item::where('item_category_id',$id)->get();
+//dd($items);
+        if ($items === null) {
+            return ResponseHelper::renderResponse(404, "Items does not exist");
+        }
+        return ResponseHelper::renderResponse(200, "successfully fetched", $items);
     }
 }

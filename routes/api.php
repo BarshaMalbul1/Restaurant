@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get('/items', [\App\Http\Controllers\ItemController::class, 'index']);
 Route::post('/item', [\App\Http\Controllers\ItemController::class, 'store']);
 Route::get('/item/{id}', [\App\Http\Controllers\ItemController::class, 'getItemById']);
+Route::get('/item/category/{category_id}', [\App\Http\Controllers\ItemController::class, 'getItemsByCategoryId']);
 Route::delete('/item/{id}', [\App\Http\Controllers\ItemController::class, 'destroy']);
 
 //category

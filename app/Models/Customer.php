@@ -37,8 +37,8 @@ class Customer extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'userId',
-        'dietPreference',
+        'user_id',
+        'diet_preference',
         'allergy',
     ];
 

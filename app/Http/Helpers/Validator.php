@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 class Validator
 {
-    public static function validate(Model $model, Request $request, $skipable = ["id", "created_at", "updated_at"])
+    public static function validate(Model $model, Request $request, $skipable = ["id", "image","created_at", "updated_at"])
     {
         $rp = new ReflectionProperty($model::class, 'fillable');
         $rp->setAccessible(true);
